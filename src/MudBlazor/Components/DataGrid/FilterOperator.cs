@@ -310,7 +310,7 @@ namespace MudBlazor
             //DateTime.NotEmpty => LanguageResource.MudDataGrid_IsNotEmpty,
             //Guid.Equal => LanguageResource.MudDataGrid_Equals,
             //Guid.NotEqual => LanguageResource.MudDataGrid_NotEquals,
-            _ => throw new ArgumentOutOfRangeException(nameof(operatorName), operatorName, "Unknown operator name.")
+            _ => $"MudDataGrid_Operator_{operatorName}"
         };
     }
 }

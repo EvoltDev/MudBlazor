@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <PackageId>MudBlazor</PackageId>
+    <Version>8.7.0.1</Version>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -14,7 +16,7 @@
     <Description>Blazor Component Library based on Material Design principles with an emphasis on ease of use and extensibility</Description>
     <PackageProjectUrl>https://mudblazor.com/</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/MudBlazor/MudBlazor</RepositoryUrl>
+    <RepositoryUrl>https://github.com/EvoltDev/MudBlazor</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
   
