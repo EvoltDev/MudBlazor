@@ -73,7 +73,7 @@ namespace MudBlazor
         /// </summary>
         /// <remarks>
         /// Defaults to <c>false</c>.
-        /// Can be overridden by <see cref="MudGlobal.Rounded"/>.
+        /// Override with <see cref="MudGlobal.Rounded"/>..
         /// </remarks>
         [Parameter]
         [Category(CategoryTypes.Table.Appearance)]
@@ -679,10 +679,18 @@ namespace MudBlazor
                 return;
             }
 
-            var currentPageHasChanged = _currentPage != 0;
+
+            var currentPageHasChanged = false;
+
+            // On intialization, don't reset CurrentPage
+            // https://github.com/MudBlazor/MudBlazor/issues/11727
+            if (_rowsPerPage.HasValue)
+            {
+                currentPageHasChanged = _currentPage != 0;
+                _currentPage = 0;
+            }
+
             _rowsPerPage = size;
-            _currentPage = 0;
-            StateHasChanged();
             RowsPerPageChanged.InvokeAsync(_rowsPerPage.Value);
 
             if (currentPageHasChanged)
@@ -694,6 +702,8 @@ namespace MudBlazor
             {
                 InvokeServerLoadFunc();
             }
+
+            StateHasChanged();
         }
 
         protected abstract int NumPages { get; }
