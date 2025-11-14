@@ -380,6 +380,19 @@ namespace MudBlazor
                 _culture = value;
             }
         }
+        
+        [Parameter]
+        public EventCallback<HeaderCell<T>> HeaderCellRefChanged { get; set; }
+
+        public HeaderCell<T> HeaderCellRef
+        {
+            get => _headerCellRef;
+            internal set
+            {
+                _headerCellRef = value;
+                HeaderCellRefChanged.InvokeAsync(value);
+            }
+        }
 
         #endregion
 
@@ -552,6 +565,7 @@ namespace MudBlazor
         internal HeaderContext<T> headerContext;
         private FilterContext<T> filterContext;
         internal FooterContext<T> footerContext;
+        private HeaderCell<T> _headerCellRef;
 
         /// <summary>
         /// The context used for filtering values in this column.
