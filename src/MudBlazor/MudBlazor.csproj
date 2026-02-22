@@ -3,14 +3,14 @@
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
     <PackageId>MudBlazor</PackageId>
-    <Version>8.14.0.1</Version>
+    <Version>8.15.0.4</Version>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>Nuget.png</PackageIcon>
     <Company>MudBlazor</Company>
-    <Authors>Garderoben, Henon and Contributors</Authors>
+    <Authors>Garderoben, Henon and Contributors, Evolt</Authors>
     <Copyright>Copyright 2024 MudBlazor</Copyright>
     <PackageTags>Blazor, MudBlazor, Material, Material Design, Components, Blazor Components, Blazor Library</PackageTags>
     <Description>Blazor Component Library based on Material Design principles with an emphasis on ease of use and extensibility</Description>

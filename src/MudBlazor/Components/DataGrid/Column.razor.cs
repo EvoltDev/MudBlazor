@@ -393,6 +393,9 @@ namespace MudBlazor
                 HeaderCellRefChanged.InvokeAsync(value);
             }
         }
+        
+        [Parameter]
+        public EventCallback<double> OnCellWidthChanged { get; set; }
 
         #endregion
 
