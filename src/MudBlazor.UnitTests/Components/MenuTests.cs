@@ -112,6 +112,20 @@ namespace MudBlazor.UnitTests.Components
         }
 
         [Test]
+        public async Task Menu_ModelessOverlay_IgnoresActivatorRootForAutoCloseHitTesting()
+        {
+            var comp = Context.Render<MenuTest1>();
+
+            await comp.Find("button.mud-button-root").ClickAsync();
+            await comp.WaitForAssertionAsync(() => comp.FindAll("div.mud-popover-open").Count.Should().Be(1));
+
+            var menuRoot = comp.Find("div.mud-menu");
+            var overlay = comp.Find("div.mud-overlay");
+            overlay.GetAttribute("data-modeless-ignore-element-id").Should().Be(menuRoot.Id);
+            menuRoot.Id.Should().NotBeNullOrEmpty();
+        }
+
+        [Test]
         public async Task IsOpen_CheckState()
         {
             var comp = Context.Render<MenuTest1>();
@@ -1157,6 +1171,24 @@ namespace MudBlazor.UnitTests.Components
             // Verify that the component is using the global defaults
             // Modal should be null (using PopoverOptions defaults)
             menu.Instance.Modal.Should().BeNull();
+        }
+
+        [Test]
+        public async Task NestedMenu_SubMenuArrow_PointsRightInLtr()
+        {
+            var comp = Context.Render<MenuWithNestingTest>();
+            await comp.Find("button:contains('1')").ClickAsync();
+            var icon = comp.Find(".mud-menu-submenu-icon");
+            icon.InnerHtml.Should().Contain("M10 17l5-5-5-5v10z"); // ArrowRight path
+        }
+
+        [Test]
+        public async Task NestedMenu_SubMenuArrow_PointsLeftInRtl()
+        {
+            var comp = Context.Render<MenuWithNestingTest>(p => p.AddCascadingValue("RightToLeft", true));
+            await comp.Find("button:contains('1')").ClickAsync();
+            var icon = comp.Find(".mud-menu-submenu-icon");
+            icon.InnerHtml.Should().Contain("M14 7l-5 5 5 5V7z"); // ArrowLeft path
         }
     }
 }

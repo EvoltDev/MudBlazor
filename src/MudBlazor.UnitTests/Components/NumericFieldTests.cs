@@ -184,7 +184,10 @@ namespace MudBlazor.UnitTests.Components
             {
                 var result = Validate(arg);
                 if (result.IsValid)
+                {
                     return Array.Empty<string>();
+                }
+
                 return result.Errors.Select(e => e.ErrorMessage);
             }
 
@@ -600,6 +603,88 @@ namespace MudBlazor.UnitTests.Components
             await comp.WaitForAssertionAsync(() => comp.Instance.FieldNotImmediate.ReadValue.Should().Be(7000.99));
         }
 
+        [Test]
+        public async Task NumericField_Immediate_Should_Reformat_Repeated_Input_With_F3()
+        {
+            var comp = Context.Render<MudNumericField<double?>>(parameters => parameters
+                .Add(x => x.Immediate, true)
+                .Add(x => x.Culture, CultureInfo.GetCultureInfo("en-US"))
+                .Add(x => x.Format, "F3"));
+
+            var input = comp.Find("input");
+
+            await input.InputAsync("3.14514515415414515");
+            await comp.WaitForAssertionAsync(() => comp.Instance.ReadText.Should().Be("3.145"));
+            await comp.WaitForAssertionAsync(() => comp.Instance.ReadValue.Should().Be(3.14514515415414515d));
+            input.GetAttribute("value").Should().Be("3.145");
+
+            await input.InputAsync("3.145145154154145159");
+            await comp.WaitForAssertionAsync(() => comp.Instance.ReadText.Should().Be("3.145"));
+            await comp.WaitForAssertionAsync(() => comp.Instance.ReadValue.Should().Be(3.145145154154145159d));
+            input.GetAttribute("value").Should().Be("3.145");
+        }
+
+        [Test]
+        public async Task NumericField_Should_Reformat_On_Blur_With_Custom_Format_When_Not_Immediate()
+        {
+            var comp = Context.Render<MudNumericField<double?>>(parameters => parameters
+                .Add(x => x.Immediate, false)
+                .Add(x => x.Culture, CultureInfo.GetCultureInfo("en-US"))
+                .Add(x => x.Format, "#.###"));
+
+            var input = comp.Find("input");
+
+            await input.ChangeAsync("3.14514515415414515");
+            await comp.WaitForAssertionAsync(() => comp.Instance.ReadText.Should().Be("3.145"));
+            await comp.WaitForAssertionAsync(() => comp.Instance.ReadValue.Should().Be(3.14514515415414515d));
+            input.GetAttribute("value").Should().Be("3.145");
+
+            await input.BlurAsync();
+            await comp.WaitForAssertionAsync(() => comp.Instance.ReadText.Should().Be("3.145"));
+            await comp.WaitForAssertionAsync(() => comp.Instance.ReadValue.Should().Be(3.14514515415414515d));
+            input.GetAttribute("value").Should().Be("3.145");
+        }
+
+        [Test]
+        public async Task NumericField_NotImmediate_Should_Reformat_When_Blur_Fires_Before_Change()
+        {
+            var comp = Context.Render<MudNumericField<double?>>(parameters => parameters
+                .Add(x => x.Immediate, false)
+                .Add(x => x.Culture, CultureInfo.GetCultureInfo("en-US"))
+                .Add(x => x.Format, "#.###"));
+
+            var input = comp.Find("input");
+
+            await input.BlurAsync();
+            await input.ChangeAsync("3.14514515415414515");
+
+            await comp.WaitForAssertionAsync(() => comp.Instance.ReadText.Should().Be("3.145"));
+            await comp.WaitForAssertionAsync(() => comp.Instance.ReadValue.Should().Be(3.14514515415414515d));
+            input.GetAttribute("value").Should().Be("3.145");
+        }
+
+        [Test]
+        public async Task NumericField_NotImmediate_Should_Reformat_Consistently_Across_Repeated_Blurs()
+        {
+            var comp = Context.Render<MudNumericField<double?>>(parameters => parameters
+                .Add(x => x.Immediate, false)
+                .Add(x => x.Culture, CultureInfo.GetCultureInfo("en-US"))
+                .Add(x => x.Format, "#.###"));
+
+            var input = comp.Find("input");
+            const string rawText = "3.14514515415414515";
+
+            for (var i = 0; i < 5; i++)
+            {
+                await input.ChangeAsync(rawText);
+                await input.BlurAsync();
+
+                await comp.WaitForAssertionAsync(() => comp.Instance.ReadText.Should().Be("3.145"));
+                await comp.WaitForAssertionAsync(() => comp.Instance.ReadValue.Should().Be(3.14514515415414515d));
+                input.GetAttribute("value").Should().Be("3.145");
+            }
+        }
+
         [TestCaseSource(nameof(TypeCases))]
         public async Task NumericField_Validation<T>(T value)
         {
@@ -679,6 +764,22 @@ namespace MudBlazor.UnitTests.Components
             comp.Instance.ReadValue.Should().Be(value);
         }
 
+        [Test]
+        public async Task NumericField_SpinButtonsShouldFocusInput()
+        {
+            var comp = Context.Render<MudNumericField<int>>(parameters => parameters
+                .Add(x => x.HideSpinButtons, false)
+                .Add(x => x.Value, 5)
+                .Add(x => x.Step, 1));
+
+            await comp.FindAll(".mud-input-numeric-spin .mud-button-root")[0].TriggerEventAsync("onpointerdown", new PointerEventArgs());
+            await comp.FindAll(".mud-input-numeric-spin .mud-button-root")[1].TriggerEventAsync("onpointerdown", new PointerEventArgs());
+
+            Context.JSInterop.Invocations
+                .Count(x => x.Identifier == "Blazor._internal.domWrapper.focus")
+                .Should().Be(2);
+        }
+
         [TestCaseSource(nameof(TypeCases))]
         public async Task NumericFieldNullable_Increment_Decrement<T>(T value) where T : struct
         {
@@ -714,9 +815,13 @@ namespace MudBlazor.UnitTests.Components
             await comp.Find("input").ChangeAsync("");
 
             if (typeof(T) == typeof(byte) || typeof(T) == typeof(ushort) || typeof(T) == typeof(uint) || typeof(T) == typeof(ulong))
+            {
                 value = Num.To<T>(0);
+            }
             else
+            {
                 value = (T)Convert.ChangeType(-Convert.ToDouble(value), typeof(T));
+            }
 
             await comp.InvokeAsync(() => comp.Instance.Decrement());
             comp.Instance.ReadValue.Should().Be(value);
@@ -1019,13 +1124,13 @@ namespace MudBlazor.UnitTests.Components
         }
 
         [Test]
-        public async Task Should_render_appropriate_type()
+        public async Task Should_render_text_input_and_only_emit_pattern_when_explicitly_set()
         {
             var comp = Context.Render<NumericFieldRenderTest>();
             var field = comp.Find("#num-field-id");
 
             comp.Markup.Should().NotContain("pattern");
-            field.GetAttribute("type").Should().Be("number");
+            field.GetAttribute("type").Should().Be("text");
 
             await comp.SetParametersAndRenderAsync(parameters => parameters
                 .Add(x => x.UsePattern, true));
@@ -1036,7 +1141,39 @@ namespace MudBlazor.UnitTests.Components
                 .Add(x => x.UsePattern, false));
 
             comp.Markup.Should().NotContain("pattern");
-            field.GetAttribute("type").Should().Be("number");
+            field.GetAttribute("type").Should().Be("text");
+        }
+
+        [Test]
+        public void NumericField_Should_RenderSpinbuttonAriaAttributes()
+        {
+            var comp = Context.Render<MudNumericField<int>>(parameters => parameters
+                .Add(p => p.Value, 4)
+                .Add(p => p.Min, 1)
+                .Add(p => p.Max, 10));
+
+            var input = comp.Find("input");
+
+            input.GetAttribute("type").Should().Be("text");
+            input.GetAttribute("role").Should().Be("spinbutton");
+            input.GetAttribute("aria-valuenow").Should().Be("4");
+            input.GetAttribute("aria-valuemin").Should().Be("1");
+            input.GetAttribute("aria-valuemax").Should().Be("10");
+            input.HasAttribute("aria-valuetext").Should().BeFalse();
+        }
+
+        [Test]
+        public void NumericField_Should_RenderAriaValueText_WhenFormattedTextDiffers()
+        {
+            var comp = Context.Render<MudNumericField<double>>(parameters => parameters
+                .Add(p => p.Value, 1234.56)
+                .Add(p => p.Culture, CultureInfo.GetCultureInfo("en-US"))
+                .Add(p => p.Format, "N2"));
+
+            var input = comp.Find("input");
+
+            input.GetAttribute("aria-valuenow").Should().Be("1234.56");
+            input.GetAttribute("aria-valuetext").Should().Be("1,234.56");
         }
 
         [Test]
@@ -1052,6 +1189,21 @@ namespace MudBlazor.UnitTests.Components
             await comp.WaitForAssertionAsync(() => comp.Instance.Value.Should().Be(123.45M));
             numericField.Instance.ReadText.Should().Be("123.45");
             numericField.Instance.GetState(x => x.Culture).Name.Should().Be("");
+        }
+
+        [Test]
+        [SetUICulture("ru-RU")]
+        public async Task Should_apply_explicit_current_ui_culture()
+        {
+            var comp = Context.Render<MudNumericField<decimal>>(parameters => parameters
+                .Add(p => p.Culture, CultureInfo.GetCultureInfo("ru-RU")));
+
+            await comp.Find("input").ChangeAsync("123,45");
+            await comp.Find("input").BlurAsync();
+
+            await comp.WaitForAssertionAsync(() => comp.Instance.ReadValue.Should().Be(123.45M));
+            comp.Instance.ReadText.Should().Be("123,45");
+            comp.Instance.Culture.Name.Should().Be("ru-RU");
         }
 
         [Test]
@@ -1149,6 +1301,8 @@ namespace MudBlazor.UnitTests.Components
 
             comp.Instance.ConversionErrorMessage.Should().NotBeNullOrEmpty();
             comp.Find("#error-id").InnerHtml.Should().Be(comp.Instance.ConversionErrorMessage);
+            comp.Find("input").GetAttribute("aria-describedby").Should().Be("error-id");
+            comp.Find("input").GetAttribute("aria-invalid").Should().Be("true");
         }
 
         [TestCase(Adornment.Start)]

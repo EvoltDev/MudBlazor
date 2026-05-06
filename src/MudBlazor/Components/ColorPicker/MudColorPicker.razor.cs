@@ -458,7 +458,7 @@ namespace MudBlazor
             await _textState.SetValueAsync(value);
         }
 
-        protected override string? ReadText => GetColorTextValue(_valueState.Value);
+        protected override string? ReadText => _textState.Value ?? GetColorTextValue(_valueState.Value);
 
         protected override Task WriteTextAsync(string? value) => SetInputStringAsync(value);
 
@@ -504,7 +504,7 @@ namespace MudBlazor
             var gX = 255 - (int)((255 - _baseColor.G) * x);
             var bX = 255 - (int)((255 - _baseColor.B) * x);
 
-            var y = 1.0 - _selectorY / MaxY;
+            var y = 1.0 - (_selectorY / MaxY);
 
             var r = rX * y;
             var g = gX * y;
@@ -522,6 +522,13 @@ namespace MudBlazor
 
         private static (double x, double y) UpdateColorSelectorBasedOnRgb(MudColor newColor)
         {
+            // Pure black is the one RGB value that cannot be normalized by the dominant-channel math below, because
+            // every channel is zero. Anchor it explicitly to the bottom-right corner so initialization stays stable.
+            if (newColor.R is 0 && newColor.G is 0 && newColor.B is 0)
+            {
+                return (MaxX, MaxY);
+            }
+
             var hueValue = (int)MathExtensions.Map(0, 360, 0, 6 * 255, newColor.H);
             var index = hueValue / 255;
             if (index == 6)

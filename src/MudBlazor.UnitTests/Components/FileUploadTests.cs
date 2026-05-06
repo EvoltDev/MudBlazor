@@ -5,7 +5,9 @@
 using System.Globalization;
 using AwesomeAssertions;
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MudBlazor.Extensions;
@@ -228,7 +230,7 @@ namespace MudBlazor.UnitTests.Components
             var comp = Context.Render<FileUploadFormValidationTest>();
 
             var form = comp.Instance.Form;
-            await comp.InvokeAsync(() => form.Validate());
+            await comp.InvokeAsync(() => form.ValidateAsync());
 
             form.IsValid.Should().BeFalse(); //form is invalid to start
 
@@ -243,7 +245,7 @@ namespace MudBlazor.UnitTests.Components
             var singleInput = single.FindComponent<InputFile>();
             singleInput.UploadFiles(fileContent[0]); //upload first file
 
-            await comp.InvokeAsync(() => form.Validate());
+            await comp.InvokeAsync(() => form.ValidateAsync());
 
             single.Instance.GetState(x => x.ErrorText).Should().BeNull();
             single.Markup.Should().NotContain("'File' must not be empty.");
@@ -253,7 +255,7 @@ namespace MudBlazor.UnitTests.Components
             var multipleInput = multiple.FindComponent<InputFile>();
             multipleInput.UploadFiles(fileContent); //upload second files
 
-            await comp.InvokeAsync(() => form.Validate());
+            await comp.InvokeAsync(() => form.ValidateAsync());
 
             single.Instance.GetState(x => x.ErrorText).Should().BeNull();
             single.Markup.Should().NotContain("'Files' must not be empty.");
@@ -443,6 +445,47 @@ namespace MudBlazor.UnitTests.Components
 
             // Test drag end
             await comp.Find("input").DragEndAsync();
+            comp.Find(".mud-file-upload-dragarea").ClassList.Should().NotContain("mud-border-primary");
+        }
+
+        /// <summary>
+        /// Ensures first-class drag callbacks are invoked together with internal drag state handling.
+        /// </summary>
+        [Test]
+        public async Task FileUpload_DragAndDrop_Should_Invoke_FirstClass_Drag_Callbacks()
+        {
+            var dragEnterCalls = 0;
+            var dragLeaveCalls = 0;
+            var dropCalls = 0;
+            var dragEndCalls = 0;
+
+            var comp = Context.Render<MudFileUpload<IBrowserFile>>(parameters => parameters
+                .Add(x => x.DragAndDrop, true)
+                .Add(x => x.OnDragEnter, EventCallback.Factory.Create<DragEventArgs>(this, (DragEventArgs _) => dragEnterCalls++))
+                .Add(x => x.OnDragLeave, EventCallback.Factory.Create<DragEventArgs>(this, (DragEventArgs _) => dragLeaveCalls++))
+                .Add(x => x.OnDrop, EventCallback.Factory.Create<DragEventArgs>(this, (DragEventArgs _) => dropCalls++))
+                .Add(x => x.OnDragEnd, EventCallback.Factory.Create<DragEventArgs>(this, (DragEventArgs _) => dragEndCalls++)));
+
+            await comp.Find(".mud-file-upload-dragarea").DragEnterAsync();
+            dragEnterCalls.Should().Be(1);
+            comp.Find(".mud-file-upload-dragarea").ClassList.Should().Contain("mud-border-primary");
+
+            await comp.Find("input").DragLeaveAsync();
+
+            dragLeaveCalls.Should().Be(1);
+            comp.Find(".mud-file-upload-dragarea").ClassList.Should().NotContain("mud-border-primary");
+
+            await comp.Find("input").DragEnterAsync();
+            dragEnterCalls.Should().Be(2);
+            comp.Find(".mud-file-upload-dragarea").ClassList.Should().Contain("mud-border-primary");
+
+            await comp.Find("input").DropAsync(new DragEventArgs());
+            dropCalls.Should().Be(1);
+            comp.Find(".mud-file-upload-dragarea").ClassList.Should().NotContain("mud-border-primary");
+
+            await comp.Find("input").DragEnterAsync();
+            await comp.Find("input").DragEndAsync();
+            dragEndCalls.Should().Be(1);
             comp.Find(".mud-file-upload-dragarea").ClassList.Should().NotContain("mud-border-primary");
         }
 

@@ -70,9 +70,6 @@ jobs:
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
-        with:
-          # We only need the latest SDK for publishing
-          dotnet-version: 10.x
 
       - name: Restore dependencies
         working-directory: src/MudBlazor
@@ -99,7 +96,7 @@ jobs:
             --skip-duplicate
 
       - name: Upload nightly package as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mudblazor-nightly-${{ needs.get-nightly-version.outputs.VERSION }}
           path: ./src/MudBlazor/nupkgs/*.nupkg

@@ -1,4 +1,5 @@
-﻿using AwesomeAssertions;
+﻿using System.Globalization;
+using AwesomeAssertions;
 using Bunit;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor.UnitTests.TestComponents.TimePicker;
@@ -91,6 +92,17 @@ namespace MudBlazor.UnitTests.Components
         }
 
         [Test]
+        public void TimePicker_WithAmPmTrue_Displays12HourText()
+        {
+            var comp = Context.Render<MudTimePicker>(parameters => parameters
+                .Add(x => x.Culture, CultureInfo.InvariantCulture)
+                .Add(x => x.AmPm, true)
+                .Add(x => x.Time, new TimeSpan(17, 45, 0)));
+
+            comp.Find("input").GetAttribute("value").Should().Be("05:45 PM");
+        }
+
+        [Test]
         public async Task OpenToHours_CheckMinutesHidden()
         {
             var comp = await OpenPicker(parameters => parameters.Add(x => x.OpenTo, OpenTo.Hours));
@@ -178,6 +190,7 @@ namespace MudBlazor.UnitTests.Components
             picker.TimeIntermediate.Should().BeNull();
             picker.ConversionError.Should().BeTrue();
             picker.ConversionErrorMessage.Should().Be("Not a valid time span");
+            comp.Find("input").GetAttribute("aria-invalid").Should().Be("true");
             // invalid time (overflow, AmPm)
             await comp.Find("input").ChangeAsync("13:45 AM");
             picker.TimeIntermediate.Should().BeNull();
@@ -367,6 +380,24 @@ namespace MudBlazor.UnitTests.Components
                 .Add(p => p.ClearIcon, Icons.Custom.Brands.MudBlazor));
 
             comp.Markup.Should().Contain(comp.Instance.ClearIcon);
+        }
+
+        [Test]
+        public async Task StaticReadOnly_ShouldNotChangeTime()
+        {
+            var initialTime = new TimeSpan(10, 30, 0);
+            var comp = Context.Render<MudTimePicker>(parameters => parameters
+                .Add(p => p.PickerVariant, PickerVariant.Static)
+                .Add(p => p.ReadOnly, true)
+                .Add(p => p.Time, initialTime));
+            var picker = comp.Instance;
+
+            // Simulate clock stick interaction (as invoked from JS)
+            await comp.InvokeAsync(() => picker.SelectTimeFromStick(5, false));
+
+            // Time should remain unchanged because ReadOnly is true
+            picker.Time.Should().Be(initialTime);
+            picker.TimeIntermediate.Should().Be(initialTime);
         }
     }
 }

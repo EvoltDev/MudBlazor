@@ -54,13 +54,13 @@ function serializeParameter(data, spec) {
         }
 
         let currentMemberSpec;
-        if (spec != "*") {
+        if (spec === "*") {
+            currentMemberSpec = "*";
+        } else {
             currentMemberSpec = Array.isArray(data) ? spec : spec[i];
             if (!currentMemberSpec) {
                 continue;
             }
-        } else {
-            currentMemberSpec = "*";
         }
 
         if (typeof currentMember === 'object') {
@@ -74,13 +74,11 @@ function serializeParameter(data, spec) {
                         res[i].push(arrayItem);
                     }
                 }
-            } else {
+            } else if (currentMember.length === 0) {
                 //the browser provides some member (like plugins) as hash with index as key, if length == 0 we shall not convert it
-                if (currentMember.length === 0) {
-                    res[i] = [];
-                } else {
-                    res[i] = serializeParameter(currentMember, currentMemberSpec);
-                }
+                res[i] = [];
+            } else {
+                res[i] = serializeParameter(currentMember, currentMemberSpec);
             }
         } else {
             // string, number or boolean
@@ -111,6 +109,34 @@ window.mudGetSvgBBox = (svgElement) => {
         width: bbox.width,
         height: bbox.height
     };
+};
+
+/**
+ * Returns whether or not the element has a parent with a defined height,
+ * either via explicit height or constrained layout context.
+ */
+window.hasDefinedParentHeight = (element) => {
+    const parent = element?.parentElement;
+
+    if (!parent) return false;
+
+    const style = window.getComputedStyle(parent);
+
+    // Explicit height via inline or computed (not auto)
+    const hasExplicitHeight =
+        parent.style.height && parent.style.height !== 'auto';
+
+    // Check for flex/grid constraints
+    const isFlexOrGrid =
+        style.display.includes('flex') ||
+        style.display.includes('grid');
+
+    // Check if height is constrained via layout context
+    const hasConstrainedHeight =
+        style.height !== 'auto' &&
+        style.maxHeight !== 'none';
+
+    return hasExplicitHeight || (hasConstrainedHeight && isFlexOrGrid);
 };
 
 /**

@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <PackageId>MudBlazor</PackageId>
     <Version>9.0.0.1</Version>
+    <EnumGenerator_ForceInternal>true</EnumGenerator_ForceInternal>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -91,11 +92,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.11.0-beta1.26057.1">
+    <PackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="3.11.0-beta1.26075.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NetEscapades.EnumGenerators.Generators" Version="1.0.0-beta20" PrivateAssets="all" />
+    <PackageReference Include="NetEscapades.EnumGenerators.Generators" Version="1.0.0-beta21" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
@@ -125,6 +126,9 @@
     <Message Importance="High"
              Text="Building MudBlazor web assets (outer build)" />
 
+    <Exec Command="$(BunToolRestore)"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+
     <Exec Command="$(BunWrapper) run build.mjs"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
@@ -140,6 +144,9 @@
 
     <Message Importance="High"
              Text="Building MudBlazor web assets (inner build, TFM: $(TargetFramework))" />
+
+    <Exec Command="$(BunToolRestore)"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
 
     <Exec Command="$(BunWrapper) run build.mjs"
           WorkingDirectory="$(MSBuildProjectDirectory)" />

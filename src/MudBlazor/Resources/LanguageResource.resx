@@ -171,6 +171,12 @@
   <data name="MudDataGrid_Ungroup" xml:space="preserve">
     <value>Ungroup</value>
   </data>
+  <data name="MudDataGrid_CollapseGroup" xml:space="preserve">
+    <value>Collapse group</value>
+  </data>
+  <data name="MudDataGrid_ExpandGroup" xml:space="preserve">
+    <value>Expand group</value>
+  </data>
   <data name="MudDataGrid_Group" xml:space="preserve">
     <value>Group</value>
   </data>
@@ -345,11 +351,38 @@
   <data name="MudInput_Increment" xml:space="preserve">
     <value>Increment</value>
   </data>
+  <data name="MudRangeInput_Start" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="MudRangeInput_End" xml:space="preserve">
+    <value>End</value>
+  </data>
+  <data name="MudDateRangePicker_Start" xml:space="preserve">
+    <value>Start date</value>
+  </data>
+  <data name="MudDateRangePicker_End" xml:space="preserve">
+    <value>End date</value>
+  </data>
   <data name="MudPageContentNavigation_NavMenu" xml:space="preserve">
     <value>Contents</value>
   </data>
   <data name="MudTable_Loading" xml:space="preserve">
     <value>Loading...</value>
+  </data>
+  <data name="MudTable_ExpandGroup" xml:space="preserve">
+    <value>Expand group</value>
+  </data>
+  <data name="MudTable_EditRow" xml:space="preserve">
+    <value>Edit row</value>
+  </data>
+  <data name="MudTable_CancelEditRow" xml:space="preserve">
+    <value>Cancel edit</value>
+  </data>
+  <data name="MudTable_CollapseGroup" xml:space="preserve">
+    <value>Collapse group</value>
+  </data>
+  <data name="MudTable_CommitRow" xml:space="preserve">
+    <value>Commit edit</value>
   </data>
   <data name="MudTablePager_FirstPage" xml:space="preserve">
     <value>First page</value>
@@ -401,6 +434,12 @@
   </data>
   <data name="MudDataGrid_RemoveFilter" xml:space="preserve">
     <value>Remove filter</value>
+  </data>
+  <data name="MudDataGrid_SelectRow" xml:space="preserve">
+    <value>Select row</value>
+  </data>
+  <data name="MudDataGrid_SelectAllRows" xml:space="preserve">
+    <value>Select all rows</value>
   </data>
   <data name="MudDataGridPager_FirstPage" xml:space="preserve">
     <value>First page</value>
@@ -464,6 +503,24 @@
   </data>
   <data name="MudTreeView_ExpandItem" xml:space="preserve">
     <value>Expand</value>
+  </data>
+  <data name="MudTabs_ScrollLeft" xml:space="preserve">
+    <value>Scroll tabs left</value>
+  </data>
+  <data name="MudTabs_ScrollRight" xml:space="preserve">
+    <value>Scroll tabs right</value>
+  </data>
+  <data name="MudTabs_ScrollUp" xml:space="preserve">
+    <value>Scroll tabs up</value>
+  </data>
+  <data name="MudTabs_CloseTab" xml:space="preserve">
+    <value>Close tab</value>
+  </data>
+  <data name="MudTabs_AddTab" xml:space="preserve">
+    <value>Add tab</value>
+  </data>
+  <data name="MudTabs_ScrollDown" xml:space="preserve">
+    <value>Scroll tabs down</value>
   </data>
   <data name="MudTreeView_CollapseItem" xml:space="preserve">
     <value>Collapse</value>

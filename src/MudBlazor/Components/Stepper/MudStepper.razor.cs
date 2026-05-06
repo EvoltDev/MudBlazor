@@ -26,6 +26,7 @@ public partial class MudStepper : MudComponentBase
     private MudStep? _activeStep;
     private readonly ParameterState<int> _activeIndex;
     private readonly List<MudStep> _steps = [];
+    private readonly string _componentId = Identifier.Create();
 
     protected string Classname =>
         new CssBuilder("mud-stepper")
@@ -45,6 +46,25 @@ public partial class MudStepper : MudComponentBase
             .AddClass("mud-stepper-nav-scrollable", ScrollableNavigation)
             .AddClass(NavClass)
             .Build();
+
+    internal string GetStepButtonId(MudStep step) => $"stepper-{_componentId}-tab-{step.FieldId}";
+
+    internal string GetStepPanelId(MudStep step) => $"stepper-{_componentId}-tabpanel-{step.FieldId}";
+
+    internal string? GetStepPanelIdIfRendered(MudStep step)
+    {
+        if (IsCompleted && CompletedContent is not null)
+        {
+            return null;
+        }
+
+        if (Vertical)
+        {
+            return GetStepPanelId(step);
+        }
+
+        return step == _activeStep ? GetStepPanelId(step) : null;
+    }
 
     /// <summary>
     /// The steps to step through.
@@ -303,12 +323,12 @@ public partial class MudStepper : MudComponentBase
     /// <remarks>
     /// Typically used to enable or disable a custom <c>Next</c> button.
     /// </remarks>
-    public bool CanGoToNextStep => _steps.Any() && _steps.SkipWhile(x => _steps.IndexOf(x) <= _activeIndex).Count(x => !x.DisabledState.Value) > 0;
+    public bool CanGoToNextStep => _steps.Any() && _steps.SkipWhile(x => _steps.IndexOf(x) <= _activeIndex).Any(x => !x.DisabledState.Value);
 
     /// <summary>
     /// Whether the <c>Previous</c> button is enabled.
     /// </summary>
-    public bool PreviousStepEnabled => _steps.Any() && _steps.TakeWhile(x => _steps.IndexOf(x) < _activeIndex).Count(x => !x.DisabledState.Value) > 0;
+    public bool PreviousStepEnabled => _steps.Any() && _steps.TakeWhile(x => _steps.IndexOf(x) < _activeIndex).Any(x => !x.DisabledState.Value);
 
     /// <summary>
     /// Whether all steps have been completed.

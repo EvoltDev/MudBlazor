@@ -130,10 +130,6 @@ namespace MudBlazor.UnitTests.Components
 
             var expectedAttributes = new Dictionary<string, string>()
             {
-                { "aria-valuenow","120" },
-                { "aria-valuemin","100" },
-                { "aria-valuemax","200" },
-                { "role","slider" },
                 { "min","100" },
                 { "max","200" },
                 { "step","10" },
@@ -369,6 +365,26 @@ namespace MudBlazor.UnitTests.Components
                 IElement Filling() => comp.Find(".mud-slider-filled");
                 Filling().GetAttribute("style").Should().Be($"width:{expectedPercentage}%;");
             }
+        }
+
+        [Test]
+        [TestCase(0.0, 100.0, 50, "50")]
+        [TestCase(0.0, 100.0, 25, "25")]
+        [TestCase(0.0, 100.0, 0, "0")]
+        [TestCase(0.0, 100.0, 100, "100")]
+        public void ValueLabelPosition_Rtl(double min, double max, double value, string expectedPercentage)
+        {
+            var comp = Context.Render<MudSlider<double>>(x =>
+            {
+                x.Add(p => p.Max, max);
+                x.Add(p => p.Min, min);
+                x.Add(p => p.Value, value);
+                x.Add(p => p.ValueLabel, true);
+                x.AddCascadingValue("RightToLeft", true);
+            });
+
+            IElement ValueLabel() => comp.Find(".mud-slider-value-label");
+            ValueLabel().GetAttribute("style").Should().Be($"right:{expectedPercentage}%;");
         }
 
         [Test]

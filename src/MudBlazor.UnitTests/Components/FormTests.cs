@@ -287,7 +287,10 @@ namespace MudBlazor.UnitTests.Components
             var validationFunc = new Func<string, string>(s =>
             {
                 if (!(s.StartsWith("Marilyn") || s.EndsWith("Manson")))
+                {
                     return "Not a star!";
+                }
+
                 return null;
             });
             var comp = Context.Render<FormValidationTest>(parameters => parameters.Add(p => p.Validation, validationFunc));
@@ -346,8 +349,11 @@ namespace MudBlazor.UnitTests.Components
             var validationFunc = new Func<string, Task<string>>(async s =>
             {
                 if (s == null)
+                {
                     return null;
-                var valid = (s == "abc");
+                }
+
+                var valid = s == "abc";
                 await Task.Delay(valid ? ValidDelay : InvalidDelay);
                 return valid ? null : "invalid";
             });
@@ -403,6 +409,24 @@ namespace MudBlazor.UnitTests.Components
         }
 
         /// <summary>
+        /// #12790: After changing any of the textfields with a For expression the corresponding chip should show a change message after the textfield blurred.
+        /// </summary>
+        [Test]
+        public async Task EditFormOnFieldChanged_BlurWithoutValueChange_ShouldNotNotify()
+        {
+            var comp = Context.Render<EditFormOnFieldChangedTest>();
+            var chips = comp.FindAll("span.mud-chip-content");
+            chips.Count.Should().Be(3);
+
+            await comp.FindAll("input")[0].BlurAsync();
+
+            chips = comp.FindAll("span.mud-chip-content");
+            chips[0].TextContent.Trim().Should().EndWith("not changed");
+            chips[1].TextContent.Trim().Should().EndWith("not changed");
+            chips[2].TextContent.Trim().Should().EndWith("not changed");
+        }
+
+        /// <summary>
         /// After changing any of the textfields with a For expression the corresponding chip should show a change message after the textfield blurred.
         /// </summary>
         /// <returns></returns>
@@ -415,7 +439,10 @@ namespace MudBlazor.UnitTests.Components
             var chips = comp.FindAll("span.mud-chip-content");
             chips.Count.Should().Be(3);
             foreach (var chip in chips)
+            {
                 chip.TextContent.Trim().Should().EndWith("not changed");
+            }
+
             await comp.FindAll("input")[0].ChangeAsync(new ChangeEventArgs() { Value = "asdf" });
             await comp.FindAll("input")[0].BlurAsync();
             comp.FindComponents<MudTextField<string>>()[0].Instance.ReadText.Should().Be("asdf");
@@ -453,7 +480,10 @@ namespace MudBlazor.UnitTests.Components
             await comp.FindAll("input")[2].ChangeAsync("17"); // kg ;)
             await comp.FindAll("input")[2].BlurAsync();
             foreach (var tf in comp.FindComponents<MudTextField<string>>())
+            {
                 tf.Instance.ReadText.Should().NotBeNullOrEmpty();
+            }
+
             comp.FindComponent<MudTextField<int>>().Instance.ReadValue.Should().Be(17);
             // then click the checkbox
             comp.FindComponent<MudCheckBox<bool>>().Instance.ReadValue.Should().Be(true);
@@ -461,7 +491,10 @@ namespace MudBlazor.UnitTests.Components
             comp.FindComponent<MudCheckBox<bool>>().Instance.ReadValue.Should().Be(false);
             // the text fields should be unchanged
             foreach (var tf in comp.FindComponents<MudTextField<string>>())
+            {
                 tf.Instance.ReadText.Should().NotBeNullOrEmpty();
+            }
+
             comp.FindComponent<MudTextField<int>>().Instance.ReadValue.Should().Be(17);
         }
 
@@ -1195,7 +1228,7 @@ namespace MudBlazor.UnitTests.Components
             await comp.FindAll("input")[5].BlurAsync();
 
             var form = comp.FindComponent<MudForm>().Instance;
-            await comp.InvokeAsync(() => form.Validate());
+            await comp.InvokeAsync(() => form.ValidateAsync());
             form.IsValid.Should().BeFalse();
 
             var textfields = comp.FindComponents<MudTextField<string>>();
@@ -1240,7 +1273,7 @@ namespace MudBlazor.UnitTests.Components
             await comp.FindAll("input")[9].BlurAsync();
 
             var form = comp.FindComponent<MudForm>().Instance;
-            await comp.InvokeAsync(() => form.Validate());
+            await comp.InvokeAsync(() => form.ValidateAsync());
             form.IsValid.Should().BeFalse();
 
             var textfields = comp.FindComponents<MudTextField<string>>();
@@ -1295,7 +1328,7 @@ namespace MudBlazor.UnitTests.Components
             await comp.FindAll("input")[9].BlurAsync();
 
             var form = comp.FindComponent<MudForm>().Instance;
-            await comp.InvokeAsync(() => form.Validate());
+            await comp.InvokeAsync(() => form.ValidateAsync());
             form.IsValid.Should().BeTrue();
 
             var textfields = comp.FindComponents<MudTextField<string>>();
@@ -2093,6 +2126,57 @@ namespace MudBlazor.UnitTests.Components
             comp.Instance.IsParentTouchChanged.Should().BeFalse();
             comp.Instance.IsChildTouchChanged.Should().BeFalse();
         }
+
+        /// <summary>
+        /// Regression test for: https://github.com/MudBlazor/MudBlazor/issues/12012.
+        /// When a form has a validation error and the bound property is updated through code,
+        /// the validation error should be cleared if the new value is valid, or updated if still invalid.
+        /// </summary>
+        [Test]
+        public async Task FormValidationErrorClearedOnProgrammaticValueChange()
+        {
+            var comp = Context.Render<FormWithSingleTextField>();
+            var form = comp.FindComponent<MudForm>().Instance;
+            var textFieldComp = comp.FindComponent<MudTextField<string>>();
+            var textField = textFieldComp.Instance;
+
+            // Set validation that requires non-empty string
+            await textFieldComp.SetParametersAndRenderAsync(parameters => parameters
+                .Add(x => x.Required, true)
+                .Add(x => x.RequiredError, "This field is required"));
+
+            // Simulate user interaction: Tab out of field to trigger validation error
+            await textFieldComp.Find("input").BlurAsync();
+            await comp.WaitForAssertionAsync(() =>
+            {
+                form.IsValid.Should().BeFalse();
+                textField.GetState(x => x.Error).Should().BeTrue();
+                textField.GetState(x => x.ErrorText).Should().Be("This field is required");
+            });
+
+            // Now set a valid value programmatically through parameter binding
+            await textFieldComp.SetParametersAndRenderAsync(parameters =>
+                parameters.Add(x => x.Value, "Valid Value"));
+
+            // The validation error should be cleared because the value is now valid
+            await comp.WaitForAssertionAsync(() =>
+            {
+                form.IsValid.Should().BeTrue();
+                textField.GetState(x => x.Error).Should().BeFalse();
+                textField.GetState(x => x.ErrorText).Should().BeNullOrEmpty();
+            });
+
+            // Clear the value programmatically through parameter binding
+            await textFieldComp.SetParametersAndRenderAsync(parameters =>
+                parameters.Add(x => x.Value, string.Empty));
+
+            // The validation error should reappear because the value is now invalid
+            await comp.WaitForAssertionAsync(() =>
+            {
+                form.IsValid.Should().BeFalse();
+                textField.GetState(x => x.Error).Should().BeTrue();
+                textField.GetState(x => x.ErrorText).Should().Be("This field is required");
+            });
+        }
     }
 }
-
