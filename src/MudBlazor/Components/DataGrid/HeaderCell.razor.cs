@@ -468,7 +468,7 @@ namespace MudBlazor
             {
                 _resizerHeight = gridHeight;
                 Width = targetWidth;
-                await Column.OnCellWidthChanged.InvokeAsync(targetWidth);
+                await Column?.OnCellWidthChanged.InvokeAsync(targetWidth)!;
                 await InvokeAsync(StateHasChanged);
             }
 

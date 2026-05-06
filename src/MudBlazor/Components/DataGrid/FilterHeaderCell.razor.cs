@@ -97,7 +97,7 @@ namespace MudBlazor
             await ApplyFilterAsync(Column.FilterContext.FilterDefinition);
         }
 
-        internal async Task StringValueChangedAsync(string value)
+        internal async Task StringValueChangedAsync(string? value)
         {
             Debug.Assert(Column.FilterContext.FilterDefinition is not null);
             Column.FilterContext.FilterDefinition.Value = value;
@@ -111,7 +111,7 @@ namespace MudBlazor
             await ApplyFilterAsync(Column.FilterContext.FilterDefinition);
         }
 
-        internal async Task EnumValueChangedAsync(Enum value)
+        internal async Task EnumValueChangedAsync(Enum? value)
         {
             Debug.Assert(Column.FilterContext.FilterDefinition is not null);
             Column.FilterContext.FilterDefinition.Value = value;

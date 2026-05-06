@@ -396,14 +396,14 @@ namespace MudBlazor
 
         public HeaderCell<T> HeaderCellRef
         {
-            get => _headerCellRef;
+            get;
             internal set
             {
-                _headerCellRef = value;
+                field = value;
                 HeaderCellRefChanged.InvokeAsync(value);
             }
-        }
-        
+        } = null!;
+
         [Parameter]
         public EventCallback<double> OnCellWidthChanged { get; set; }
 
@@ -581,7 +581,6 @@ namespace MudBlazor
         internal HeaderContext<T> headerContext = null!;
         private FilterContext<T> filterContext = null!;
         internal FooterContext<T> footerContext = null!;
-        private HeaderCell<T> _headerCellRef;
 
         /// <summary>
         /// The context used for filtering values in this column.
