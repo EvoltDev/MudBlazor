@@ -1832,8 +1832,7 @@ namespace MudBlazor
         {
             var context = new FilterContext<T>(this)
             {
-                FilterDefinition = filterDefinition,
-                HeaderCell = column.FilterContext.HeaderCell
+                FilterDefinition = filterDefinition
             };
             context.SetActions(new FilterContext<T>.FilterActions
             {
@@ -1971,10 +1970,12 @@ namespace MudBlazor
             StateHasChanged();
         }
 
-        internal Task ApplyFiltersAsync()
+        internal async Task ApplyFiltersAsync()
         {
             _filtersMenuVisible = false;
-            return InvokeServerLoadFunc();
+            await InvokeServerLoadFunc();
+            GroupItems();
+            await NotifyFilterChangedAsync();
         }
 
         /// <summary>
@@ -1984,12 +1985,16 @@ namespace MudBlazor
         /// This method closes the filter panel shown by <see cref="MudDataGrid{T}"/>, such as the panel used by <see cref="DataGridFilterMode.Simple"/>.
         /// Incomplete filters which still require a value are removed as part of closing the panel.
         /// </remarks>
-        public Task CloseFilterAsync()
+        public async Task CloseFilterAsync()
         {
             _filtersMenuVisible = false;
-            CleanupIncompleteFilters();
+            if (CleanupIncompleteFilters())
+            {
+                await InvokeServerLoadFunc();
+                GroupItems();
+                await NotifyFilterChangedAsync();
+            }
             StateHasChanged();
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -2034,7 +2039,7 @@ namespace MudBlazor
             await NotifyFilterChangedAsync();
         }
 
-        private Task NotifyFilterChangedAsync() => FilterChanged.InvokeAsync(FilterDefinitions.AsReadOnly());
+        internal Task NotifyFilterChangedAsync() => FilterChanged.InvokeAsync(FilterDefinitions.AsReadOnly());
 
         internal async Task SetSelectedItemAsync(bool value, T item)
         {
@@ -2492,9 +2497,17 @@ namespace MudBlazor
             StateHasChanged();
         }
 
-        private void OnFiltersPanelClosed() => CleanupIncompleteFilters();
+        private async Task OnFiltersPanelClosed()
+        {
+            if (CleanupIncompleteFilters())
+            {
+                await InvokeServerLoadFunc();
+                GroupItems();
+                await NotifyFilterChangedAsync();
+            }
+        }
 
-        internal void CleanupIncompleteFilters() => FilterDefinitions.RemoveAll(p => p.Value == null && ValueRequired(p));
+        internal bool CleanupIncompleteFilters() => FilterDefinitions.RemoveAll(p => p.Value == null && ValueRequired(p)) > 0;
         internal void SetFiltersMenuPosition(double top, double left)
         {
             _filtersMenuPosition = (top, left);

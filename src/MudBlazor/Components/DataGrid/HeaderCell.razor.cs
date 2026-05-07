@@ -598,6 +598,8 @@ namespace MudBlazor
                 ((IMudStateHasChanged)DataGrid).StateHasChanged();
             }
 
+            DataGrid.GroupItems();
+            await DataGrid.NotifyFilterChangedAsync();
             _filtersMenuVisible = false;
             DataGrid.DropContainerHasChanged();
         }
@@ -619,6 +621,8 @@ namespace MudBlazor
                 ((IMudStateHasChanged)DataGrid).StateHasChanged();
             }
 
+            DataGrid.GroupItems();
+            await DataGrid.NotifyFilterChangedAsync();
             _filtersMenuVisible = false;
             DataGrid.DropContainerHasChanged();
         }
@@ -638,6 +642,8 @@ namespace MudBlazor
                 ((IMudStateHasChanged)DataGrid).StateHasChanged();
             }
 
+            DataGrid.GroupItems();
+            await DataGrid.NotifyFilterChangedAsync();
             _filtersMenuVisible = false;
             DataGrid.DropContainerHasChanged();
         }
@@ -678,6 +684,8 @@ namespace MudBlazor
                 ((IMudStateHasChanged)DataGrid).StateHasChanged();
             }
 
+            DataGrid.GroupItems();
+            await DataGrid.NotifyFilterChangedAsync();
             _filtersMenuVisible = false;
             DataGrid.DropContainerHasChanged();
         }

@@ -469,16 +469,7 @@
                             </MudSelect>
                         </MudItem>
                         <MudItem xs="4">
-                            @if (filterDefinition.Column?.FilterTemplate is not null)
-                        {
-                            @filterDefinition.Column.FilterTemplate(
-                                new FilterContext<T>(this)
-                                {
-                                    FilterDefinition = filterDefinition
-                                }
-                            )
-                        } 
-                        else if (fieldType.IsString && !(filterDefinition.Operator ?? "").EndsWith("empty"))
+                            @if (fieldType.IsString && !(filterDefinition.Operator ?? "").EndsWith("empty"))
                             {
                                 <MudTextField T="string" Value="@filter._valueString" ValueChanged="@filter.StringValueChanged" FullWidth="true" Label="@Localizer[LanguageResource.MudDataGrid_Value]" Placeholder="@Localizer[LanguageResource.MudDataGrid_FilterValue]" Margin="@Margin.Dense"
                                               Immediate="true" Class="filter-input"/>
